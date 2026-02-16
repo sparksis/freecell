@@ -21,6 +21,13 @@ const SUIT_COLORS = {
   diamonds: 'text-red-600',
 };
 
+const SUIT_FILL_COLORS = {
+  spades: 'text-slate-800/20',
+  hearts: 'text-red-500/20',
+  clubs: 'text-slate-800/20',
+  diamonds: 'text-red-500/20',
+};
+
 const isAlternateColor = (card1, card2) => {
   const isRed1 = card1.suit === 'hearts' || card1.suit === 'diamonds';
   const isRed2 = card2.suit === 'hearts' || card2.suit === 'diamonds';
@@ -174,7 +181,6 @@ export default function App() {
   };
 
   const onMouseDown = (e, sourceType, sourceIndex, cardIndex = -1) => {
-    // Left click only for dragging
     if (e.button !== 0 && e.type !== 'touchstart') return;
 
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -246,7 +252,6 @@ export default function App() {
   }, [dragInfo, gameState]);
 
   const onMouseUp = useCallback((e) => {
-    // Release focused card on right click release
     if (e.button === 2) {
         setFocusedCard(null);
     }
@@ -267,13 +272,12 @@ export default function App() {
 
   useEffect(() => {
     const handleGlobalClick = (e) => {
-        // Only clear if it was a left click or not inside a card
         if (focusedCard && e.button !== 2) setFocusedCard(null);
     };
     window.addEventListener('mousedown', handleGlobalClick);
     window.addEventListener('mousemove', onMouseMove, { passive: true });
     window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('contextmenu', (e) => e.preventDefault()); // Global prevent
+    window.addEventListener('contextmenu', (e) => e.preventDefault());
     window.addEventListener('touchmove', onMouseMove, { passive: false });
     window.addEventListener('touchend', onMouseUp);
     return () => {
@@ -440,7 +444,7 @@ export default function App() {
     <div className={`min-h-screen bg-green-900 text-slate-100 font-sans select-none overflow-hidden flex flex-col transition-colors duration-500 ${focusedCard ? 'brightness-[0.85]' : ''}`}>
       <style>{`
         :root { touch-action: none; }
-        .card-shadow { box-shadow: 1px 1px 4px rgba(0,0,0,0.4); }
+        .card-shadow { box-shadow: 1px 2px 5px rgba(0,0,0,0.4); }
         .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .no-transition { transition: none !important; }
@@ -461,6 +465,10 @@ export default function App() {
             0%, 100% { box-shadow: 0 0 15px 2px rgba(255, 255, 0, 0.3); transform: scale(1.05); }
             50% { box-shadow: 0 0 25px 8px rgba(255, 255, 0, 0.6); transform: scale(1.08); }
         }
+        .recessed-slot {
+            background: linear-gradient(145deg, rgba(0,0,0,0.3), rgba(255,255,255,0.05));
+            box-shadow: inset 1px 1px 4px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.05);
+        }
       `}</style>
 
       <header className="h-14 bg-green-950/70 backdrop-blur-md flex items-center justify-between px-6 border-b border-green-800 z-[70] shrink-0">
@@ -469,10 +477,6 @@ export default function App() {
             <div className="w-6 h-6 bg-yellow-500 rounded flex items-center justify-center text-green-900 text-xs font-black group-hover:bg-yellow-400 transition-colors">F</div>
             FREECELL
           </button>
-          <div className="hidden sm:flex items-center gap-4 text-sm text-green-200/70 font-medium">
-             <button onClick={startNewGame} className="hover:text-white transition">Game</button>
-             <button onClick={undo} className="hover:text-white transition">Undo</button>
-          </div>
         </div>
 
         <div className="flex items-center gap-2 text-green-200 font-mono text-lg bg-green-900/50 px-3 py-1 rounded-full border border-green-700/50 timer-glow">
@@ -487,54 +491,45 @@ export default function App() {
       </header>
 
       <main className="flex-1 p-6 sm:p-10 overflow-hidden flex flex-col max-w-[1500px] mx-auto w-full relative">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none z-0">
-            <div className="text-[15rem] font-black font-mono tracking-tighter">{formatTime(time)}</div>
-        </div>
+        {/* Slot Row */}
+        <div className="grid grid-cols-8 gap-2 sm:gap-4 md:gap-6 mb-8 z-10 w-full">
+            {/* Freecells */}
+            {gameState.freecells.map((card, i) => (
+              <div key={`fc-${i}`} data-drop-type="freecell" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/40 recessed-slot">
+                {!card && <div className="absolute inset-0 border-2 border-dashed border-green-700/20 rounded-lg m-1" />}
+                {card && (
+                  <div
+                    onMouseDown={(e) => onMouseDown(e, 'freecell', i)}
+                    onContextMenu={(e) => onContextMenu(e, card)}
+                    onDoubleClick={() => handleDoubleClick(card, 'freecell', i)}
+                    className={`h-full transition-all duration-300 ${dragInfo?.source.type === 'freecell' && dragInfo?.source.index === i ? 'opacity-0' : 'card-hover-effect'} ${focusedCard?.id === card?.id ? 'twin-reveal' : ''} ${focusedCard?.twinId === card?.id ? 'twin-highlight' : ''}`}
+                  >
+                    <Card card={card} />
+                  </div>
+                )}
+              </div>
+            ))}
 
-        {/* ALIGNED TOP ROW: 8 Columns matched to Tableau */}
-        <div className="grid grid-cols-8 gap-2 sm:gap-4 md:gap-6 mb-6 z-10 w-full">
-            {/* Freecells: Slots 0-3 */}
-            {gameState.freecells.map((card, i) => {
-              const isSourceOfDrag = dragInfo?.source.type === 'freecell' && dragInfo?.source.index === i;
-              const isFocused = focusedCard?.id === card?.id;
-              const isTwinHighlight = focusedCard?.twinId === card?.id;
-              return (
-                <div key={`fc-${i}`} data-drop-type="freecell" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/60 bg-green-950/30">
-                    {card && (
-                    <div
-                        onMouseDown={(e) => onMouseDown(e, 'freecell', i)}
-                        onContextMenu={(e) => onContextMenu(e, card)}
-                        onDoubleClick={() => handleDoubleClick(card, 'freecell', i)}
-                        className={`h-full transition-all duration-300 ${isSourceOfDrag ? 'opacity-0' : 'card-hover-effect'} ${isFocused ? 'twin-reveal' : ''} ${isTwinHighlight ? 'twin-highlight' : ''}`}
-                    >
-                        <Card card={card} />
-                    </div>
-                    )}
-                </div>
-              )
-            })}
-
-            {/* Foundations: Slots 4-7 */}
+            {/* Foundations */}
             {SUITS.map((suit, i) => (
-              <div key={`fd-${suit}`} data-drop-type="foundation" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/60 bg-green-950/30 flex items-center justify-center">
-                <div className={`text-4xl opacity-10 ${SUIT_COLORS[suit]}`}>{SUIT_ICONS[suit]}</div>
-                {gameState.foundations[suit].map((card) => {
-                  const isTwinHighlight = focusedCard?.twinId === card.id;
-                  const isFocused = focusedCard?.id === card.id;
-                  return (
-                    <div key={card.id} className={`absolute inset-0 transition-all ${isFocused ? 'twin-reveal' : ''} ${isTwinHighlight ? 'twin-highlight' : ''}`}>
-                      <Card card={card} isStatic />
-                    </div>
-                  );
-                })}
+              <div key={`fd-${suit}`} data-drop-type="foundation" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/60 recessed-slot flex items-center justify-center overflow-hidden">
+                <div className={`text-6xl sm:text-7xl font-black select-none pointer-events-none transition-colors duration-500 ${SUIT_FILL_COLORS[suit]}`}>
+                    {SUIT_ICONS[suit]}
+                </div>
+                {gameState.foundations[suit].map((card) => (
+                  <div key={card.id} className={`absolute inset-0 transition-all ${focusedCard?.id === card.id ? 'twin-reveal' : ''} ${focusedCard?.twinId === card.id ? 'twin-highlight' : ''}`}>
+                    <Card card={card} isStatic />
+                  </div>
+                ))}
               </div>
             ))}
         </div>
 
-        {/* ALIGNED TABLEAU: 8 Columns matched to Top Row */}
+        {/* Tableau Row */}
         <div className="grid grid-cols-8 gap-2 sm:gap-4 md:gap-6 flex-1 relative z-10 w-full">
           {gameState.columns.map((col, colIndex) => (
             <div key={`col-${colIndex}`} data-drop-type="column" data-drop-index={colIndex} className="relative h-full">
+              {col.length === 0 && <div className="absolute top-0 w-full aspect-[2.5/3.6] rounded-lg border-2 border-dashed border-green-800/30" />}
               {col.map((card, cardIndex) => {
                  const isSourceOfDrag = dragInfo?.source.type === 'column' && dragInfo?.source.index === colIndex && cardIndex >= dragInfo.source.cardIndex;
                  const isFocused = focusedCard?.id === card.id;
@@ -557,6 +552,7 @@ export default function App() {
         </div>
       </main>
 
+      {/* Floating Drag Representation */}
       {dragInfo && (
         <div className="fixed pointer-events-none z-[100] flex flex-col no-transition will-change-drag shadow-2xl"
           style={{ left: 0, top: 0, transform: `translate3d(${dragInfo.x}px, ${dragInfo.y}px, 0) translate(-50%, -15%) rotate(1deg)`, width: 'min(calc((100vw - 12rem) / 8), 8rem)' }}>
@@ -566,6 +562,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Overlays */}
       {win && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center">
           <div className="bg-white text-slate-900 p-8 rounded-2xl shadow-2xl text-center max-w-sm mx-4 animate-pop">
@@ -590,10 +587,6 @@ export default function App() {
                         <span className="font-medium">Auto-Play Cards</span>
                         <div onClick={() => setAutoPlayEnabled(!autoPlayEnabled)} className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${autoPlayEnabled ? 'bg-green-500' : 'bg-slate-600'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-md transition-all ${autoPlayEnabled ? 'left-7' : 'left-1'}`} /></div>
                     </div>
-                    <div className="text-[11px] text-slate-400 bg-slate-950/50 p-3 rounded-lg border border-slate-800 leading-relaxed">
-                        <div className="flex items-center gap-2 mb-1 text-green-400"><Search size={12}/> Pro Tip: Twin Reveal</div>
-                        Hold Right-Click on any card to peek and highlight its twin!
-                    </div>
                 </div>
             </div>
         </div>
@@ -605,13 +598,15 @@ export default function App() {
 function Card({ card, isDragging, isStatic }) {
   return (
     <div className={`w-full aspect-[2.5/3.6] bg-white rounded-[4px] select-none overflow-hidden relative ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-yellow-400/30' : 'border border-slate-300'}`}>
-      <div className={`absolute top-1 left-1 sm:left-1.5 text-xs sm:text-lg font-bold flex flex-col items-center leading-tight ${SUIT_COLORS[card.suit]}`}>
+      <div className={`absolute top-0.5 left-1 sm:top-1 sm:left-1.5 text-xs sm:text-lg font-bold flex flex-col items-center leading-none ${SUIT_COLORS[card.suit]}`}>
         <span>{card.rank}</span><span className="text-[10px] sm:text-base -mt-0.5">{SUIT_ICONS[card.suit]}</span>
       </div>
       <div className={`absolute inset-0 flex items-center justify-center text-4xl sm:text-6xl ${SUIT_COLORS[card.suit]} opacity-90`}>{SUIT_ICONS[card.suit]}</div>
-      <div className={`absolute bottom-1 right-1 sm:right-1.5 text-xs sm:text-lg font-bold flex flex-col items-center leading-tight rotate-180 ${SUIT_COLORS[card.suit]}`}>
+      <div className={`absolute bottom-0.5 right-1 sm:bottom-1 sm:right-1.5 text-xs sm:text-lg font-bold flex flex-col items-center leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
         <span>{card.rank}</span><span className="text-[10px] sm:text-base -mt-0.5">{SUIT_ICONS[card.suit]}</span>
       </div>
+      {/* Subtle card texture */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-black/[0.02] to-transparent pointer-events-none" />
     </div>
   );
 }
