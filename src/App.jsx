@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { RotateCcw, Play, Settings, Trophy, X, Clock, Search } from 'lucide-react';
+import { RotateCcw, Play, Settings, Trophy, X, Clock } from 'lucide-react';
 
 /**
  * UTILITIES & CONSTANTS
@@ -108,102 +108,85 @@ export default function App() {
   const logoClickTimer = useRef(null);
   const logoClicks = useRef(0);
 
-  // External API
-  useEffect(() => {
-    window.loadGame = (state) => {
-        if (state && state.columns && state.freecells && state.foundations) {
-            setGameState(state);
-            setHasStarted(true);
-            setWin(false);
-            setHistory([]);
-            setFocusedCard(null);
-            console.log("Game state successfully restored.");
-        } else {
-            console.error("Invalid game state provided.");
-        }
-    };
-  }, []);
-
   const saveState = useCallback(() => {
     setHistory(prev => [...prev, JSON.parse(JSON.stringify(gameState))]);
   }, [gameState]);
 
-  const undo = () => {
-    if (history.length === 0) return;
-    const previousState = history[history.length - 1];
-    setGameState(previousState);
-    setHistory(prev => prev.slice(0, -1));
-    setWin(false);
-    setFocusedCard(null);
-  };
+  const checkWin = useCallback((state) => {
+    const totalFoundation = Object.values(state.foundations).reduce((acc, pile) => acc + pile.length, 0);
+    if (totalFoundation === 52) setWin(true);
+  }, []);
 
-  const startNewGame = () => {
-    setHistory([]);
-    setGameState(dealGame());
-    setWin(false);
-    setMenuOpen(false);
-    setHasStarted(false);
-    setTime(0);
-    setFocusedCard(null);
-  };
+  const attemptMove = useCallback((from, to) => {
+    const newColumns = gameState.columns.map(c => [...c]);
+    const newFreecells = [...gameState.freecells];
+    const newFoundations = { ...gameState.foundations };
 
-  // Timer logic
-  useEffect(() => {
-    let interval;
-    if (hasStarted && !win) {
-        interval = setInterval(() => {
-            setTime(t => t + 1);
-        }, 1000);
+    let cardsToMove = [];
+    if (from.type === 'freecell') {
+      cardsToMove = [newFreecells[from.index]];
+    } else {
+      cardsToMove = newColumns[from.index].slice(from.cardIndex);
     }
-    return () => clearInterval(interval);
-  }, [hasStarted, win]);
 
-  const handleLogoClick = async () => {
-    logoClicks.current += 1;
-    clearTimeout(logoClickTimer.current);
+    if (!cardsToMove.length || !cardsToMove[0]) return;
+    const primaryCard = cardsToMove[0];
+    let valid = false;
 
-    if (logoClicks.current === 3) {
-        logoClicks.current = 0;
-        const stateStr = JSON.stringify(gameState);
-        try {
-            await navigator.clipboard.writeText(stateStr);
-            const clipboardText = await navigator.clipboard.readText();
-            if (clipboardText && clipboardText !== stateStr) {
-                const potentialState = JSON.parse(clipboardText);
-                if (potentialState.columns) window.loadGame(potentialState);
-            }
-        } catch (e) {
-            console.log("State:", stateStr);
-        }
-        return;
-    }
-    logoClickTimer.current = setTimeout(() => { logoClicks.current = 0; }, 400);
-  };
-
-  const onMouseDown = (e, sourceType, sourceIndex, cardIndex = -1) => {
-    if (e.button !== 0 && e.type !== 'touchstart') return;
-
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-    dragStartPos.current = {
-      x: clientX,
-      y: clientY,
-      sourceType,
-      sourceIndex,
-      cardIndex,
-      isDragging: false
+    const getMaxMoveSize = (targetColumnIsEmpty) => {
+        const emptyFreecells = newFreecells.filter(c => c === null).length;
+        const emptyColumns = newColumns.filter(c => c.length === 0).length;
+        const effectiveEmptyCols = targetColumnIsEmpty ? emptyColumns - 1 : emptyColumns;
+        return (emptyFreecells + 1) * Math.pow(2, Math.max(0, effectiveEmptyCols));
     };
-  };
 
-  const onContextMenu = (e, card) => {
-    e.preventDefault();
-    if (!card) return;
-    setFocusedCard({
-        id: card.id,
-        twinId: getTwinId(card)
-    });
-  };
+    if (to.type === 'freecell') {
+      if (cardsToMove.length === 1 && newFreecells[to.index] === null) {
+        valid = true;
+        newFreecells[to.index] = primaryCard;
+        if (from.type === 'freecell') newFreecells[from.index] = null;
+        else newColumns[from.index].splice(from.cardIndex);
+      }
+    }
+    else if (to.type === 'column') {
+      const targetCol = newColumns[to.index];
+      const canMoveToColumn = (card, columnPile) => {
+        if (!card) return false;
+        if (columnPile.length === 0) return true;
+        const topCard = columnPile[columnPile.length - 1];
+        return isAlternateColor(card, topCard) && topCard.value === card.value + 1;
+      };
+      if (canMoveToColumn(primaryCard, targetCol)) {
+        if (cardsToMove.length <= getMaxMoveSize(targetCol.length === 0)) {
+          valid = true;
+          targetCol.push(...cardsToMove);
+          if (from.type === 'freecell') newFreecells[from.index] = null;
+          else newColumns[from.index].splice(from.cardIndex, cardsToMove.length);
+        }
+      }
+    } else if (to.type === 'foundation' && cardsToMove.length === 1) {
+        const suit = SUITS[to.index];
+        const canMoveToFoundation = (card, foundationPile) => {
+            if (!card) return false;
+            if (foundationPile.length === 0) return card.rank === 'A';
+            const topCard = foundationPile[foundationPile.length - 1];
+            return card.suit === topCard.suit && card.value === topCard.value + 1;
+        };
+        if (primaryCard.suit === suit && canMoveToFoundation(primaryCard, newFoundations[suit])) {
+            valid = true;
+            newFoundations[suit].push(primaryCard);
+            if (from.type === 'freecell') newFreecells[from.index] = null;
+            else newColumns[from.index].pop();
+        }
+    }
+
+    if (valid) {
+      setHistory(prev => [...prev, JSON.parse(JSON.stringify(gameState))]);
+      setGameState({ columns: newColumns, freecells: newFreecells, foundations: newFoundations });
+      checkWin({ foundations: newFoundations });
+      setHasStarted(true);
+    }
+  }, [gameState, checkWin]);
 
   const onMouseMove = useCallback((e) => {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -268,7 +251,100 @@ export default function App() {
       setDragInfo(null);
     }
     dragStartPos.current = null;
-  }, [dragInfo]);
+  }, [dragInfo, attemptMove]);
+
+  // External API
+  useEffect(() => {
+    window.loadGame = (state) => {
+        if (state && state.columns && state.freecells && state.foundations) {
+            setGameState(state);
+            setHasStarted(true);
+            setWin(false);
+            setHistory([]);
+            setFocusedCard(null);
+            console.log("Game state successfully restored.");
+        } else {
+            console.error("Invalid game state provided.");
+        }
+    };
+  }, []);
+
+  const undo = () => {
+    if (history.length === 0) return;
+    const previousState = history[history.length - 1];
+    setGameState(previousState);
+    setHistory(prev => prev.slice(0, -1));
+    setWin(false);
+    setFocusedCard(null);
+  };
+
+  const startNewGame = () => {
+    setHistory([]);
+    setGameState(dealGame());
+    setWin(false);
+    setMenuOpen(false);
+    setHasStarted(false);
+    setTime(0);
+    setFocusedCard(null);
+  };
+
+  // Timer logic
+  useEffect(() => {
+    let interval;
+    if (hasStarted && !win) {
+        interval = setInterval(() => {
+            setTime(t => t + 1);
+        }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [hasStarted, win]);
+
+  const handleLogoClick = async () => {
+    logoClicks.current += 1;
+    clearTimeout(logoClickTimer.current);
+
+    if (logoClicks.current === 3) {
+        logoClicks.current = 0;
+        const stateStr = JSON.stringify(gameState);
+        try {
+            await navigator.clipboard.writeText(stateStr);
+            const clipboardText = await navigator.clipboard.readText();
+            if (clipboardText && clipboardText !== stateStr) {
+                const potentialState = JSON.parse(clipboardText);
+                if (potentialState.columns) window.loadGame(potentialState);
+            }
+        } catch {
+            console.log("State:", stateStr);
+        }
+        return;
+    }
+    logoClickTimer.current = setTimeout(() => { logoClicks.current = 0; }, 400);
+  };
+
+  const onMouseDown = (e, sourceType, sourceIndex, cardIndex = -1) => {
+    if (e.button !== 0 && e.type !== 'touchstart') return;
+
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    dragStartPos.current = {
+      x: clientX,
+      y: clientY,
+      sourceType,
+      sourceIndex,
+      cardIndex,
+      isDragging: false
+    };
+  };
+
+  const onContextMenu = (e, card) => {
+    e.preventDefault();
+    if (!card) return;
+    setFocusedCard({
+        id: card.id,
+        twinId: getTwinId(card)
+    });
+  };
 
   useEffect(() => {
     const handleGlobalClick = (e) => {
@@ -288,77 +364,6 @@ export default function App() {
       window.removeEventListener('touchend', onMouseUp);
     };
   }, [onMouseMove, onMouseUp, focusedCard]);
-
-  const attemptMove = (from, to) => {
-    const newColumns = gameState.columns.map(c => [...c]);
-    const newFreecells = [...gameState.freecells];
-    const newFoundations = { ...gameState.foundations };
-
-    let cardsToMove = [];
-    if (from.type === 'freecell') {
-      cardsToMove = [newFreecells[from.index]];
-    } else {
-      cardsToMove = newColumns[from.index].slice(from.cardIndex);
-    }
-
-    if (!cardsToMove.length || !cardsToMove[0]) return;
-    const primaryCard = cardsToMove[0];
-    let valid = false;
-
-    const getMaxMoveSize = (targetColumnIsEmpty) => {
-        const emptyFreecells = newFreecells.filter(c => c === null).length;
-        const emptyColumns = newColumns.filter(c => c.length === 0).length;
-        const effectiveEmptyCols = targetColumnIsEmpty ? emptyColumns - 1 : emptyColumns;
-        return (emptyFreecells + 1) * Math.pow(2, Math.max(0, effectiveEmptyCols));
-    };
-
-    if (to.type === 'freecell') {
-      if (cardsToMove.length === 1 && newFreecells[to.index] === null) {
-        valid = true;
-        newFreecells[to.index] = primaryCard;
-        if (from.type === 'freecell') newFreecells[from.index] = null;
-        else newColumns[from.index].splice(from.cardIndex);
-      }
-    }
-    else if (to.type === 'column') {
-      const targetCol = newColumns[to.index];
-      const canMoveToColumn = (card, columnPile) => {
-        if (!card) return false;
-        if (columnPile.length === 0) return true;
-        const topCard = columnPile[columnPile.length - 1];
-        return isAlternateColor(card, topCard) && topCard.value === card.value + 1;
-      };
-      if (canMoveToColumn(primaryCard, targetCol)) {
-        if (cardsToMove.length <= getMaxMoveSize(targetCol.length === 0)) {
-          valid = true;
-          targetCol.push(...cardsToMove);
-          if (from.type === 'freecell') newFreecells[from.index] = null;
-          else newColumns[from.index].splice(from.cardIndex, cardsToMove.length);
-        }
-      }
-    } else if (to.type === 'foundation' && cardsToMove.length === 1) {
-        const suit = SUITS[to.index];
-        const canMoveToFoundation = (card, foundationPile) => {
-            if (!card) return false;
-            if (foundationPile.length === 0) return card.rank === 'A';
-            const topCard = foundationPile[foundationPile.length - 1];
-            return card.suit === topCard.suit && card.value === topCard.value + 1;
-        };
-        if (primaryCard.suit === suit && canMoveToFoundation(primaryCard, newFoundations[suit])) {
-            valid = true;
-            newFoundations[suit].push(primaryCard);
-            if (from.type === 'freecell') newFreecells[from.index] = null;
-            else newColumns[from.index].pop();
-        }
-    }
-
-    if (valid) {
-      saveState();
-      setGameState({ columns: newColumns, freecells: newFreecells, foundations: newFoundations });
-      checkWin({ foundations: newFoundations });
-      setHasStarted(true);
-    }
-  };
 
   const handleDoubleClick = (card, sourceType, sourceIndex) => {
     setHasStarted(true);
@@ -433,12 +438,7 @@ export default function App() {
         }
     }, 200);
     return () => clearTimeout(timer);
-  }, [gameState, autoPlayEnabled, win, hasStarted]);
-
-  const checkWin = (state) => {
-    const totalFoundation = Object.values(state.foundations).reduce((acc, pile) => acc + pile.length, 0);
-    if (totalFoundation === 52) setWin(true);
-  };
+  }, [gameState, autoPlayEnabled, win, hasStarted, checkWin]);
 
   return (
     <div className={`min-h-screen bg-green-900 text-slate-100 font-sans select-none overflow-hidden flex flex-col transition-colors duration-500 ${focusedCard ? 'brightness-[0.85]' : ''}`}>
