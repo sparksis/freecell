@@ -486,19 +486,20 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 p-8 sm:p-14 overflow-hidden flex flex-col max-w-[1500px] mx-auto w-full relative">
+      <main className="flex-1 p-6 sm:p-10 overflow-hidden flex flex-col max-w-[1500px] mx-auto w-full relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none z-0">
             <div className="text-[15rem] font-black font-mono tracking-tighter">{formatTime(time)}</div>
         </div>
 
-        <div className="flex justify-between items-start mb-20 h-32 sm:h-40 z-10">
-          <div className="flex gap-4">
+        {/* ALIGNED TOP ROW: 8 Columns matched to Tableau */}
+        <div className="grid grid-cols-8 gap-2 sm:gap-4 md:gap-6 mb-6 z-10 w-full">
+            {/* Freecells: Slots 0-3 */}
             {gameState.freecells.map((card, i) => {
               const isSourceOfDrag = dragInfo?.source.type === 'freecell' && dragInfo?.source.index === i;
               const isFocused = focusedCard?.id === card?.id;
               const isTwinHighlight = focusedCard?.twinId === card?.id;
               return (
-                <div key={`fc-${i}`} data-drop-type="freecell" data-drop-index={i} className="relative w-24 sm:w-32 aspect-[2.5/3.6] rounded-lg border-2 border-green-800/60 bg-green-950/30">
+                <div key={`fc-${i}`} data-drop-type="freecell" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/60 bg-green-950/30">
                     {card && (
                     <div
                         onMouseDown={(e) => onMouseDown(e, 'freecell', i)}
@@ -512,11 +513,10 @@ export default function App() {
                 </div>
               )
             })}
-          </div>
 
-          <div className="flex gap-4">
+            {/* Foundations: Slots 4-7 */}
             {SUITS.map((suit, i) => (
-              <div key={`fd-${suit}`} data-drop-type="foundation" data-drop-index={i} className="relative w-24 sm:w-32 aspect-[2.5/3.6] rounded-lg border-2 border-green-800/60 bg-green-950/30 flex items-center justify-center">
+              <div key={`fd-${suit}`} data-drop-type="foundation" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/60 bg-green-950/30 flex items-center justify-center">
                 <div className={`text-4xl opacity-10 ${SUIT_COLORS[suit]}`}>{SUIT_ICONS[suit]}</div>
                 {gameState.foundations[suit].map((card) => {
                   const isTwinHighlight = focusedCard?.twinId === card.id;
@@ -529,10 +529,10 @@ export default function App() {
                 })}
               </div>
             ))}
-          </div>
         </div>
 
-        <div className="grid grid-cols-8 gap-6 flex-1 relative z-10">
+        {/* ALIGNED TABLEAU: 8 Columns matched to Top Row */}
+        <div className="grid grid-cols-8 gap-2 sm:gap-4 md:gap-6 flex-1 relative z-10 w-full">
           {gameState.columns.map((col, colIndex) => (
             <div key={`col-${colIndex}`} data-drop-type="column" data-drop-index={colIndex} className="relative h-full">
               {col.map((card, cardIndex) => {
