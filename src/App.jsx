@@ -113,8 +113,40 @@ const useWindowSize = () => {
 /**
  * MAIN COMPONENT
  */
+
+const getCardOffset = (windowWidth, windowHeight, colLength) => {
+  // Base offset values (rem)
+  let baseOffset = 3.5;
+  if (windowWidth < 640) baseOffset = 1.8;
+  else if (windowWidth < 1440) baseOffset = 3.5;
+  else if (windowWidth > 2000) baseOffset = 5.5;
+  else baseOffset = 4.5;
+
+  // Header height (rem): h-20 (5), sm:h-24 (6), xl:h-32 (8)
+  const headerHeight = windowWidth < 640 ? 5 : (windowWidth < 1280 ? 6 : 8);
+  // Main padding (rem): p-4 (1), sm:p-12 (3), lg:p-16 (4), xl:p-24 (6)
+  const paddingY = windowWidth < 640 ? 2 : (windowWidth < 1024 ? 8 : 12);
+  const slotRowHeight = windowWidth < 640 ? 6 : 10;
+
+  const availableHeightRem = (windowHeight / 16) - headerHeight - paddingY - slotRowHeight - 3;
+
+  // Tableau width estimate
+  const sidePanelsWidthRem = windowWidth > 2000 ? 56 : 0;
+  const mainPaddingXRem = windowWidth < 640 ? 2 : (windowWidth < 1024 ? 6 : (windowWidth > 2000 ? 16 : 12));
+  const tableauWidthRem = (windowWidth / 16) - sidePanelsWidthRem - mainPaddingXRem;
+  const colWidthRem = tableauWidthRem / 8;
+  const cardHeightRem = colWidthRem * (3.6 / 2.5);
+
+  if (colLength <= 1) return baseOffset;
+
+  const maxTotalOffset = availableHeightRem - cardHeightRem;
+  const requiredOffset = maxTotalOffset / (colLength - 1);
+
+  return Math.min(baseOffset, Math.max(requiredOffset, 1.2));
+};
+
 export default function App() {
-  const { width } = useWindowSize();
+  const { width, height } = useWindowSize();
   const [gameState, setGameState] = useState(dealGame());
   const [history, setHistory] = useState([]);
   const [win, setWin] = useState(false);
@@ -330,16 +362,16 @@ export default function App() {
     };
   }, []);
 
-  const undo = () => {
+  const undo = useCallback(() => {
     if (history.length === 0) return;
     const previousState = history[history.length - 1];
     setGameState(previousState);
     setHistory(prev => prev.slice(0, -1));
     setWin(false);
     setFocusedCard(null);
-  };
+  }, [history]);
 
-  const startNewGame = () => {
+  const startNewGame = useCallback(() => {
     setHistory([]);
     setGameState(dealGame());
     setWin(false);
@@ -348,7 +380,7 @@ export default function App() {
     setGameState(prev => ({ ...prev, moves: 0 }));
     setTime(0);
     setFocusedCard(null);
-  };
+  }, []);
 
   // Timer logic
   useEffect(() => {
@@ -412,7 +444,24 @@ export default function App() {
     const handleGlobalClick = (e) => {
         if (focusedCard && e.button !== 2) setFocusedCard(null);
     };
+
     window.addEventListener('mousedown', handleGlobalClick);
+
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        undo();
+      }
+      if (e.key === 'n' || e.key === 'N') {
+        if (!win) startNewGame();
+      }
+      if (e.key === 'u' || e.key === 'U') {
+        undo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+
     window.addEventListener('mousemove', onMouseMove, { passive: true });
     window.addEventListener('mouseup', onMouseUp);
     window.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -420,12 +469,13 @@ export default function App() {
     window.addEventListener('touchend', onMouseUp);
     return () => {
       window.removeEventListener('mousedown', handleGlobalClick);
+      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       window.removeEventListener('touchmove', onMouseMove);
       window.removeEventListener('touchend', onMouseUp);
     };
-  }, [onMouseMove, onMouseUp, focusedCard]);
+  }, [onMouseMove, onMouseUp, focusedCard, undo, startNewGame, win]);
 
   const handleDoubleClick = (card, sourceType, sourceIndex) => {
     setHasStarted(true);
@@ -533,7 +583,7 @@ export default function App() {
         }
       `}</style>
 
-            <header className="h-20 bg-[#062c1e]/80 backdrop-blur-xl flex items-center justify-between px-8 border-b border-emerald-500/20 z-[70] shrink-0 shadow-2xl">
+            <header className="h-20 sm:h-24 xl:h-32 bg-[#062c1e]/80 backdrop-blur-xl flex items-center justify-between px-8 border-b border-emerald-500/20 z-[70] shrink-0 shadow-2xl">
         <div className="flex items-center gap-4 sm:gap-12 w-1/3">
           <button onClick={handleLogoClick} className="text-2xl font-black text-emerald-400 tracking-tighter flex items-center gap-3 hover:brightness-110 transition active:scale-95 group">
             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-green-950 text-xl font-black shadow-[0_0_20px_rgba(16,185,129,0.4)]">F</div>
@@ -569,7 +619,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className={`flex-1 p-4 sm:p-12 lg:p-16 xl:p-24 overflow-hidden flex flex-row justify-center w-full relative ${width > 2000 ? "px-32" : ""}`}>
+      <main className={`flex-1 p-4 pb-24 sm:pb-12 sm:p-12 lg:p-16 xl:p-24 overflow-hidden flex flex-row justify-center w-full relative ${width > 2000 ? "px-32" : ""}`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.05),transparent_70%)] pointer-events-none" />
         {/* Left Side Panel - Local Only */}
         {width > 2000 && (
@@ -620,7 +670,7 @@ export default function App() {
 
         <div className="flex-1 flex flex-col max-w-[2500px] w-full relative">
         {/* Slot Row */}
-        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-20 mb-8 z-10 w-full">
+        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24 mb-8 z-10 w-full">
             {/* Freecells */}
             {gameState.freecells.map((card, i) => (
               <div key={`fc-${i}`} data-drop-type="freecell" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/40 recessed-slot">
@@ -654,7 +704,7 @@ export default function App() {
         </div>
 
         {/* Tableau Row */}
-        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-20 flex-1 relative z-10 w-full">
+        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24 flex-1 relative z-10 w-full">
           {gameState.columns.map((col, colIndex) => (
             <div key={`col-${colIndex}`} data-drop-type="column" data-drop-index={colIndex} className="relative h-full">
               {col.length === 0 && <div className="absolute top-0 w-full aspect-[2.5/3.6] rounded-lg border-2 border-dashed border-green-800/30" />}
@@ -666,7 +716,7 @@ export default function App() {
                   <div
                     key={card.id}
                     className={`absolute w-full transition-all duration-200 ${isSourceOfDrag ? 'opacity-0 pointer-events-none' : 'card-hover-effect'} ${isFocused ? 'twin-reveal' : ''} ${isTwinHighlight ? 'twin-highlight' : ''}`}
-                    style={{ top: `${cardIndex * (width < 640 ? 1.6 : (width < 1440 ? 3.0 : (width > 2000 ? 5.5 : 4.5)))}rem`, zIndex: isFocused ? 9999 : cardIndex }}
+                    style={{ top: `${cardIndex * getCardOffset(width, height, col.length)}rem`, zIndex: isFocused ? 9999 : cardIndex }}
                     onMouseDown={(e) => onMouseDown(e, 'column', colIndex, cardIndex)}
                     onContextMenu={(e) => onContextMenu(e, card)}
                     onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(card, 'column', colIndex); }}
@@ -783,13 +833,13 @@ export default function App() {
 
 function Card({ card, isDragging, isStatic }) {
   return (
-    <div className={`w-full aspect-[2.5/3.6] bg-[#fcfcfc] rounded-2xl shadow-2xl select-none overflow-hidden relative ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl`}>
-      <div className={`absolute top-1 left-2 sm:top-2 sm:left-3 text-sm sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className="text-[10px] sm:text-lg lg:text-2xl xl:text-4xl -mt-1">{SUIT_ICONS[card.suit]}</span>
+    <div className={`w-full aspect-[2.5/3.6] bg-[#fcfcfc] rounded-2xl shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl`}>
+      <div className={`absolute top-1 left-2 sm:top-2 sm:left-3 text-lg sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className="text-xs sm:text-lg lg:text-2xl xl:text-4xl -mt-1">{SUIT_ICONS[card.suit]}</span>
       </div>
       <div className={`absolute inset-0 flex items-center justify-center text-5xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-90`}>{SUIT_ICONS[card.suit]}</div>
-      <div className={`absolute bottom-1 right-2 sm:bottom-2 sm:right-3 text-sm sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className="text-[10px] sm:text-lg lg:text-2xl xl:text-4xl -mt-1">{SUIT_ICONS[card.suit]}</span>
+      <div className={`absolute bottom-1 right-2 sm:bottom-2 sm:right-3 text-lg sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className="text-xs sm:text-lg lg:text-2xl xl:text-4xl -mt-1">{SUIT_ICONS[card.suit]}</span>
       </div>
       {/* Subtle card texture */}
       <div className="absolute inset-0 bg-gradient-to-tr from-black/[0.03] to-transparent pointer-events-none" />
