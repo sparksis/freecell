@@ -116,26 +116,46 @@ const useWindowSize = () => {
 
 const getCardOffset = (windowWidth, windowHeight, colLength) => {
   // Base offset values (rem)
-  let baseOffset = 3.5;
-  if (windowWidth < 640) baseOffset = 1.8;
-  else if (windowWidth < 1440) baseOffset = 3.5;
-  else if (windowWidth > 2000) baseOffset = 5.5;
-  else baseOffset = 4.5;
+  let baseOffset = 4.5;
+  if (windowWidth < 640) baseOffset = 2.2;
+  else if (windowWidth < 1024) baseOffset = 3.5;
+  else if (windowWidth < 1440) baseOffset = 4.5;
+  else baseOffset = 5.5;
 
   // Header height (rem): h-20 (5), sm:h-24 (6), xl:h-32 (8)
   const headerHeight = windowWidth < 640 ? 5 : (windowWidth < 1280 ? 6 : 8);
-  // Main padding (rem): p-4 (1), sm:p-12 (3), lg:p-16 (4), xl:p-24 (6)
-  const paddingY = windowWidth < 640 ? 2 : (windowWidth < 1024 ? 8 : 12);
-  const slotRowHeight = windowWidth < 640 ? 6 : 10;
 
-  const availableHeightRem = (windowHeight / 16) - headerHeight - paddingY - slotRowHeight - 3;
+  // Padding Y (rem)
+  let paddingY = 12;
+  if (windowWidth < 640) paddingY = 7;
+  else if (windowWidth < 1024) paddingY = 6;
+  else if (windowWidth < 1280) paddingY = 8;
 
-  // Tableau width estimate
-  const sidePanelsWidthRem = windowWidth > 2000 ? 56 : 0;
-  const mainPaddingXRem = windowWidth < 640 ? 2 : (windowWidth < 1024 ? 6 : (windowWidth > 2000 ? 16 : 12));
-  const tableauWidthRem = (windowWidth / 16) - sidePanelsWidthRem - mainPaddingXRem;
-  const colWidthRem = tableauWidthRem / 8;
+  // Padding X (rem)
+  let mainPaddingX = 12;
+  if (windowWidth < 640) mainPaddingX = 2;
+  else if (windowWidth < 1024) mainPaddingX = 6;
+  else if (windowWidth < 1280) mainPaddingX = 8;
+  else if (windowWidth > 2000) mainPaddingX = 16;
+
+  // Side panels (rem)
+  const sidePanelsWidth = windowWidth > 2000 ? 56 : 0;
+
+  // Gap (rem)
+  let gapRem = 6;
+  if (windowWidth < 640) gapRem = 0.75;
+  else if (windowWidth < 768) gapRem = 1.5;
+  else if (windowWidth < 1024) gapRem = 2;
+  else if (windowWidth < 1280) gapRem = 3;
+
+  const totalBoardWidthRem = (windowWidth / 16) - sidePanelsWidth - mainPaddingX;
+  const colWidthRem = (totalBoardWidthRem - (7 * gapRem)) / 8;
   const cardHeightRem = colWidthRem * (3.6 / 2.5);
+
+  const slotRowMarginBottomRem = 2;
+  const slotRowHeightRem = cardHeightRem + slotRowMarginBottomRem;
+
+  const availableHeightRem = (windowHeight / 16) - headerHeight - paddingY - slotRowHeightRem - 2;
 
   if (colLength <= 1) return baseOffset;
 
@@ -553,7 +573,7 @@ export default function App() {
   }, [gameState, autoPlayEnabled, win, hasStarted, checkWin]);
 
   return (
-    <div className={`min-h-screen bg-[#041a12] text-emerald-50 font-sans select-none flex flex-col relative overflow-hidden felt-texture transition-colors duration-500 ${focusedCard ? 'brightness-[0.85]' : ''}`}>
+    <div className={`min-h-screen bg-[#008f83] text-emerald-50 font-sans select-none flex flex-col relative overflow-hidden felt-texture transition-colors duration-500 ${focusedCard ? 'brightness-[0.85]' : ''}`}>
       <style>{`
         :root { touch-action: none; }
         .card-shadow { box-shadow: 1px 2px 5px rgba(0,0,0,0.4); }
@@ -562,7 +582,13 @@ export default function App() {
         .no-transition { transition: none !important; }
         .will-change-drag { will-change: transform, opacity; }
         .timer-glow { text-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
-        .card-hover-effect:hover { transform: translateY(-4px); filter: brightness(1.05); cursor: grab; }
+        .card-hover-effect:hover {
+            transform: translateY(-8px) scale(1.02);
+            filter: brightness(1.1);
+            cursor: grab;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(16,185,129,0.2);
+            z-index: 50;
+        }
         .twin-reveal {
             transform: scale(1.15) translateY(-10px) !important;
             z-index: 9999 !important;
@@ -597,15 +623,15 @@ export default function App() {
           )}
         </div>
 
-        <div className="flex items-center gap-8 bg-black/40 px-10 py-3 rounded-3xl border border-white/5 shadow-inner">
-            <div className="flex flex-col items-center min-w-[80px]">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black">Time</span>
-                <span className="text-2xl font-mono font-bold text-emerald-50 Richmond-50 leading-tight">{formatTime(time)}</span>
+        <div className="flex items-center gap-4 sm:gap-8 bg-black/40 px-4 sm:px-10 py-2 sm:py-3 rounded-2xl sm:rounded-3xl border border-white/5 shadow-inner">
+            <div className="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black">Time</span>
+                <span className="text-lg sm:text-2xl font-mono font-bold text-emerald-50 leading-tight">{formatTime(time)}</span>
             </div>
-            <div className="w-px h-10 bg-white/10" />
-            <div className="flex flex-col items-center min-w-[80px]">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black">Moves</span>
-                <span className="text-2xl font-mono font-bold text-emerald-50 leading-tight">{gameState.moves}</span>
+            <div className="w-px h-8 sm:h-10 bg-white/10" />
+            <div className="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black">Moves</span>
+                <span className="text-lg sm:text-2xl font-mono font-bold text-emerald-50 leading-tight">{gameState.moves}</span>
             </div>
         </div>
 
@@ -647,7 +673,7 @@ export default function App() {
                 </div>
             </div>
 
-            <div className="bg-black/30 rounded-[2rem] p-8 border border-white/5 shadow-2xl backdrop-blur-md">
+            <div className="bg-black/30 rounded-[2rem] p-8 border border-white/5 shadow-2xl backdrop-blur-md flex-1 flex flex-col">
                 <h3 className="text-emerald-500 font-black text-[10px] uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
                     <Clock size={14} /> Personal Stats
                 </h3>
@@ -715,7 +741,7 @@ export default function App() {
                  return (
                   <div
                     key={card.id}
-                    className={`absolute w-full transition-all duration-200 ${isSourceOfDrag ? 'opacity-0 pointer-events-none' : 'card-hover-effect'} ${isFocused ? 'twin-reveal' : ''} ${isTwinHighlight ? 'twin-highlight' : ''}`}
+                    className={`absolute w-full transition-all duration-200 aspect-[2.5/3.6] ${isSourceOfDrag ? 'opacity-0 pointer-events-none' : 'card-hover-effect'} ${isFocused ? 'twin-reveal' : ''} ${isTwinHighlight ? 'twin-highlight' : ''}`}
                     style={{ top: `${cardIndex * getCardOffset(width, height, col.length)}rem`, zIndex: isFocused ? 9999 : cardIndex }}
                     onMouseDown={(e) => onMouseDown(e, 'column', colIndex, cardIndex)}
                     onContextMenu={(e) => onContextMenu(e, card)}
@@ -774,20 +800,21 @@ export default function App() {
         <div className="fixed pointer-events-none z-[100] flex flex-col no-transition will-change-drag shadow-2xl"
           style={{ left: 0, top: 0, transform: `translate3d(${dragInfo.x}px, ${dragInfo.y}px, 0) translate(-50%, -15%) rotate(1deg)`, width: 'min(calc((100vw - 12rem) / 8), 8rem)' }}>
           {dragInfo.cards.map((card, i) => (
-            <div key={card.id} style={{ marginTop: i === 0 ? 0 : '-75%' }}><Card card={card} isDragging /></div>
+            <div key={card.id} className="aspect-[2.5/3.6] w-full" style={{ marginTop: i === 0 ? 0 : "-75%" }}><Card card={card} isDragging /></div>
           ))}
         </div>
       )}
 
       {/* Overlays */}
       {win && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center">
-          <div className="bg-white text-slate-900 p-8 rounded-2xl shadow-2xl text-center max-w-sm mx-4 animate-pop">
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-xl z-[80] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.2),transparent_70%)] animate-pulse" />
+          <div className="bg-[#062c1e] text-emerald-50 p-12 rounded-[3rem] shadow-[0_0_100px_rgba(16,185,129,0.3)] border border-emerald-500/20 text-center max-w-md mx-4 animate-pop backdrop-blur-2xl">
             <div className="w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4"><Trophy size={40} /></div>
             <h2 className="text-3xl font-black uppercase tracking-tighter mb-1 text-emerald-900">Victory!</h2>
             <div className="text-[10px] font-black uppercase tracking-widest text-emerald-600/50 mb-4">Saved to Local Hall of Fame</div>
             <p className="text-slate-500 mb-6 font-mono font-bold text-xl flex items-center justify-center gap-2"><Clock size={18} /> {formatTime(time)}</p>
-            <button onClick={startNewGame} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg transition-all active:scale-95">Play Again</button>
+            <button onClick={startNewGame} className="w-full py-4 bg-emerald-500 text-green-950 rounded-2xl font-black text-lg uppercase tracking-widest hover:bg-emerald-400 shadow-[0_10px_30px_rgba(16,185,129,0.4)] transition-all active:scale-95">Play Again</button>
           </div>
         </div>
       )}
@@ -812,18 +839,20 @@ export default function App() {
 
       {/* Mobile Bottom Navigation */}
       {width <= 640 && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#041a12]/90 backdrop-blur-xl border-t border-emerald-500/10 px-6 py-4 flex items-center justify-between z-[90]">
-          <button onClick={startNewGame} className="flex flex-col items-center gap-1 text-emerald-500/60 hover:text-emerald-400">
-            <Play size={20} fill="currentColor" />
-            <span className="text-[8px] font-black uppercase tracking-widest">New</span>
+        <nav className="fixed bottom-0 left-0 right-0 bg-[#008f83]/95 backdrop-blur-2xl border-t border-emerald-500/20 px-8 pb-8 pt-4 flex items-center justify-between z-[90] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+          <button onClick={undo} disabled={history.length === 0} className={`flex flex-col items-center gap-1.5 ${history.length === 0 ? 'opacity-20' : 'text-emerald-400 active:scale-90 transition-all'}`}>
+            <RotateCcw size={24} />
+            <span className="text-[9px] font-black uppercase tracking-[0.1em]">Undo</span>
           </button>
-          <button onClick={undo} disabled={history.length === 0} className={`flex flex-col items-center gap-1 ${history.length === 0 ? 'opacity-20' : 'text-emerald-400'}`}>
-            <RotateCcw size={20} />
-            <span className="text-[8px] font-black uppercase tracking-widest">Undo</span>
+
+          <button onClick={startNewGame} className="flex flex-col items-center justify-center bg-emerald-500 text-green-950 rounded-2xl px-8 py-3 font-black shadow-[0_0_20px_rgba(16,185,129,0.4)] active:scale-95 transition-all -mt-8 border-4 border-[#008f83]">
+            <Play size={20} fill="currentColor" className="mb-0.5" />
+            <span className="text-[10px] uppercase tracking-widest">New Game</span>
           </button>
-          <button onClick={() => setMenuOpen(true)} className="flex flex-col items-center gap-1 text-emerald-400">
-            <Settings size={20} />
-            <span className="text-[8px] font-black uppercase tracking-widest">Menu</span>
+
+          <button onClick={() => setMenuOpen(true)} className="flex flex-col items-center gap-1.5 text-emerald-400 active:scale-90 transition-all">
+            <Settings size={24} />
+            <span className="text-[9px] font-black uppercase tracking-[0.1em]">Menu</span>
           </button>
         </nav>
       )}
@@ -833,13 +862,13 @@ export default function App() {
 
 function Card({ card, isDragging, isStatic }) {
   return (
-    <div className={`w-full aspect-[2.5/3.6] bg-[#fcfcfc] rounded-2xl shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl`}>
-      <div className={`absolute top-1 left-2 sm:top-2 sm:left-3 text-lg sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className="text-xs sm:text-lg lg:text-2xl xl:text-4xl -mt-1">{SUIT_ICONS[card.suit]}</span>
+    <div className={`w-full h-full bg-[#fcfcfc] rounded-lg sm:rounded-xl xl:rounded-2xl shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl transition-transform duration-200`}>
+      <div className={`absolute top-0.5 left-1 sm:top-2 sm:left-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className="text-[8px] sm:text-lg lg:text-2xl xl:text-4xl -mt-0.5 sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
       </div>
-      <div className={`absolute inset-0 flex items-center justify-center text-5xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-90`}>{SUIT_ICONS[card.suit]}</div>
-      <div className={`absolute bottom-1 right-2 sm:bottom-2 sm:right-3 text-lg sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className="text-xs sm:text-lg lg:text-2xl xl:text-4xl -mt-1">{SUIT_ICONS[card.suit]}</span>
+      <div className={`absolute inset-0 flex items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-[0.08]`}>{SUIT_ICONS[card.suit]}</div>
+      <div className={`absolute bottom-0.5 right-1 sm:bottom-2 sm:right-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className="text-[8px] sm:text-lg lg:text-2xl xl:text-4xl -mt-0.5 sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
       </div>
       {/* Subtle card texture */}
       <div className="absolute inset-0 bg-gradient-to-tr from-black/[0.03] to-transparent pointer-events-none" />
