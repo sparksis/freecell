@@ -1,6 +1,6 @@
-# Emerald Pro Solitaire - Engineering Requirements
+# Casual Freecell Solitaire - Engineering Requirements
 
-This document outlines the core requirements and constraints for the Emerald Pro Solitaire project. All future modifications must adhere to these guidelines.
+This document outlines the core requirements and constraints for the Casual Freecell Solitaire project. All future modifications must adhere to these guidelines.
 
 ## 1. Responsive Layout Architecture
 The application must maintain a polished UI across three primary resolution tiers:

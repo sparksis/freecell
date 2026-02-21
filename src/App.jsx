@@ -613,7 +613,7 @@ export default function App() {
         <div className="flex items-center gap-4 sm:gap-12 w-1/3">
           <button onClick={handleLogoClick} className="text-2xl font-black text-emerald-400 tracking-tighter flex items-center gap-3 hover:brightness-110 transition active:scale-95 group">
             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-green-950 text-xl font-black shadow-[0_0_20px_rgba(16,185,129,0.4)]">F</div>
-            <span className="hidden sm:inline uppercase">FreeCell <span className="text-emerald-600/50 text-xs tracking-widest ml-1 font-bold">Pro</span></span>
+            <span className="hidden sm:inline uppercase">Casual <span className="text-emerald-600/50 text-xs tracking-widest ml-1 font-bold">Freecell</span></span>
           </button>
 
           {width > 1200 && (
