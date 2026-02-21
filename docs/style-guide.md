@@ -76,3 +76,7 @@ The application is optimized for three primary form factors.
 ## External References
 
 - **Known Good Stitch Reference**: Project `2204865451650378038` (Ultrawide layout balance).
+
+### Stitch Reference Assets
+- **Ultrawide Reference**: [Stitch Screen](https://lh3.googleusercontent.com/aida/AOfcidU4nnNXtbdnCTz1arG1MZf5rNxV9ffooNkGHihskvk6-OYy_4pkwsKUyTMYRbqNAYKBH80Ry4Gy7bRGBzjLHj2VlWaPML4VRVWsUy4VxQPMWCkKBm3oU3JdvTrLWeMjnwIqskGzRhHXgFIV23eN76BsHx1xiET3rTQaSJpwhgQCtmQygujfhWwP9zSfVKrZ0NXFb4gok2Oq_2SoOM9CzznVZQPeC-fEfaDDesJzLKjAHg4tQPQzWfArOjjEmkp3f45X5RSr6-Xf)
+- **Mobile Reference**: [Stitch Screen](https://lh3.googleusercontent.com/aida/AOfcidUhyB5MjtxdY6pZ0HSxp39BL_bN-qnhpt8SjetfefW2V4oywwPK1N2ac0NlkGtWVmFuB3oHnEt3XPxAqEaVt2KOkOda_S4DnjAJ0ZFJn2RZVhU3HNRc68aFCw0sZKoc1snVGvdgeOTO3v-94SSVzz7G_0G-atmu7M2PFMIohPgtpHUOwqZjg8Zmq-kXM4mwL_lAQ2xMr7Jid4pq1B_K64hDyqyOBGRqr0WLELl4qwHIf5iFoB4eEn4OrjU)
