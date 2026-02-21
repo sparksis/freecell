@@ -117,23 +117,24 @@ const useWindowSize = () => {
 const getCardOffset = (windowWidth, windowHeight, colLength) => {
   // Base offset values (rem)
   let baseOffset = 4.5;
-  if (windowWidth < 640) baseOffset = 1.8;
+  const isMobileLocal = windowWidth <= 640 || (windowWidth <= 1024 && windowHeight <= 600);
+  if (isMobileLocal) baseOffset = 1.8;
   else if (windowWidth < 1024) baseOffset = 3.5;
   else if (windowWidth < 1440) baseOffset = 4.5;
   else baseOffset = 5.5;
 
   // Header height (rem): h-20 (5), sm:h-24 (6), xl:h-32 (8)
-  const headerHeight = windowWidth < 640 ? 5 : (windowWidth < 1280 ? 6 : 8);
+  const headerHeight = isMobileLocal ? 5 : (windowWidth < 1280 ? 6 : 8);
 
   // Padding Y (rem)
   let paddingY = 12;
-  if (windowWidth < 640) paddingY = 5;
+  if (isMobileLocal) paddingY = 5;
   else if (windowWidth < 1024) paddingY = 6;
   else if (windowWidth < 1280) paddingY = 8;
 
   // Padding X (rem)
   let mainPaddingX = 12;
-  if (windowWidth < 640) mainPaddingX = 2;
+  if (isMobileLocal) mainPaddingX = 2;
   else if (windowWidth < 1024) mainPaddingX = 6;
   else if (windowWidth < 1280) mainPaddingX = 8;
   else if (windowWidth > 2000) mainPaddingX = 16;
@@ -143,7 +144,7 @@ const getCardOffset = (windowWidth, windowHeight, colLength) => {
 
   // Gap (rem)
   let gapRem = 6;
-  if (windowWidth < 640) gapRem = 0.75;
+  if (isMobileLocal) gapRem = 0.75;
   else if (windowWidth < 768) gapRem = 1.5;
   else if (windowWidth < 1024) gapRem = 2;
   else if (windowWidth < 1280) gapRem = 3;
@@ -152,7 +153,7 @@ const getCardOffset = (windowWidth, windowHeight, colLength) => {
   const colWidthRem = (totalBoardWidthRem - (7 * gapRem)) / 8;
   const cardHeightRem = colWidthRem * (3.6 / 2.5);
 
-  const slotRowMarginBottomRem = windowWidth < 640 ? 1 : 2;
+  const slotRowMarginBottomRem = isMobileLocal ? 1 : 2;
   const slotRowHeightRem = cardHeightRem + slotRowMarginBottomRem;
 
   const availableHeightRem = (windowHeight / 16) - headerHeight - paddingY - slotRowHeightRem - 2;
@@ -167,6 +168,7 @@ const getCardOffset = (windowWidth, windowHeight, colLength) => {
 
 export default function App() {
   const { width, height } = useWindowSize();
+  const isMobile = width <= 640 || (width <= 1024 && height <= 600);
   const [gameState, setGameState] = useState(dealGame());
   const [history, setHistory] = useState([]);
   const [win, setWin] = useState(false);
@@ -708,7 +710,7 @@ export default function App() {
                     onDoubleClick={() => handleDoubleClick(card, 'freecell', i)}
                     className={`h-full transition-all duration-300 ${dragInfo?.source.type === 'freecell' && dragInfo?.source.index === i ? 'opacity-0' : 'card-hover-effect'} ${focusedCard?.id === card?.id ? 'twin-reveal' : ''} ${focusedCard?.twinId === card?.id ? 'twin-highlight' : ''}`}
                   >
-                    <Card card={card} />
+                    <Card card={card} isMobile={isMobile} />
                   </div>
                 )}
               </div>
@@ -722,7 +724,7 @@ export default function App() {
                 </div>
                 {gameState.foundations[suit].map((card) => (
                   <div key={card.id} data-card-id={card.id} className={`absolute inset-0 transition-all ${focusedCard?.id === card.id ? 'twin-reveal' : ''} ${focusedCard?.twinId === card.id ? 'twin-highlight' : ''}`}>
-                    <Card card={card} isStatic />
+                    <Card card={card} isStatic isMobile={isMobile} />
                   </div>
                 ))}
               </div>
@@ -747,7 +749,7 @@ export default function App() {
                     onContextMenu={(e) => onContextMenu(e, card)}
                     onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(card, 'column', colIndex); }}
                   >
-                    <Card card={card} />
+                    <Card card={card} isMobile={isMobile} />
                   </div>
                  );
               })}
@@ -800,7 +802,7 @@ export default function App() {
         <div className="fixed pointer-events-none z-[100] flex flex-col no-transition will-change-drag shadow-2xl"
           style={{ left: 0, top: 0, transform: `translate3d(${dragInfo.x}px, ${dragInfo.y}px, 0) translate(-50%, -15%) rotate(1deg)`, width: 'min(calc((100vw - 12rem) / 8), 8rem)' }}>
           {dragInfo.cards.map((card, i) => (
-            <div key={card.id} data-card-id={card.id} className="aspect-[2.5/3.6] w-full" style={{ marginTop: i === 0 ? 0 : "-75%" }}><Card card={card} isDragging /></div>
+            <div key={card.id} data-card-id={card.id} className="aspect-[2.5/3.6] w-full" style={{ marginTop: i === 0 ? 0 : "-75%" }}><Card card={card} isDragging isMobile={isMobile} /></div>
           ))}
         </div>
       )}
@@ -838,7 +840,7 @@ export default function App() {
       )}
 
       {/* Mobile Bottom Navigation */}
-      {width <= 640 && (
+      {isMobile && (
         <nav className="fixed bottom-0 left-0 right-0 bg-[#008f83]/95 backdrop-blur-2xl border-t border-emerald-500/20 px-8 pb-8 pt-4 flex items-center justify-between z-[90] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
           <button onClick={undo} disabled={history.length === 0} className={`flex flex-col items-center gap-1.5 ${history.length === 0 ? 'opacity-20' : 'text-emerald-400 active:scale-90 transition-all'}`}>
             <RotateCcw size={24} />
@@ -860,15 +862,15 @@ export default function App() {
   );
 }
 
-function Card({ card, isDragging, isStatic }) {
+function Card({ card, isDragging, isStatic, isMobile }) {
   return (
-    <div className={`w-full h-full bg-[#fcfcfc] rounded-lg sm:rounded-xl xl:rounded-2xl shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl transition-transform duration-200`}>
-      <div data-testid="card-rank-suit" className={`absolute top-1 left-1.5 sm:top-2 sm:left-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-row sm:flex-col items-center sm:items-center gap-0.5 sm:gap-0 leading-none ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className="text-[10px] sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
+    <div className={`w-full h-full bg-[#fcfcfc] rounded-lg ${isMobile ? '' : 'sm:rounded-xl xl:rounded-2xl'} shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl transition-transform duration-200`}>
+      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? 'top-1 left-1.5' : 'top-1 left-1.5 sm:top-2 sm:left-3'} text-xs ${isMobile ? '' : 'sm:text-xl lg:text-3xl xl:text-5xl'} font-black flex ${isMobile ? 'flex-row' : 'flex-row sm:flex-col'} items-center gap-0.5 sm:gap-0 leading-none ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className={`text-[10px] ${isMobile ? '' : 'sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1'}`}>{SUIT_ICONS[card.suit]}</span>
       </div>
-      <div className={`absolute inset-0 hidden sm:flex items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-[0.08]`}>{SUIT_ICONS[card.suit]}</div>
-      <div data-testid="card-rank-suit" className={`absolute bottom-1 right-1.5 sm:bottom-2 sm:right-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-row sm:flex-col items-center sm:items-center gap-0.5 sm:gap-0 leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className="text-[10px] sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
+      <div className={`absolute inset-0 ${isMobile ? 'hidden' : 'hidden sm:flex'} items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-[0.08]`}>{SUIT_ICONS[card.suit]}</div>
+      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? 'bottom-1 right-1.5' : 'bottom-1 right-1.5 sm:bottom-2 sm:right-3'} text-xs ${isMobile ? '' : 'sm:text-xl lg:text-3xl xl:text-5xl'} font-black flex ${isMobile ? 'flex-row' : 'flex-row sm:flex-col'} items-center gap-0.5 sm:gap-0 leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className={`text-[10px] ${isMobile ? '' : 'sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1'}`}>{SUIT_ICONS[card.suit]}</span>
       </div>
       {/* Subtle card texture */}
       <div className="absolute inset-0 bg-gradient-to-tr from-black/[0.03] to-transparent pointer-events-none" />
