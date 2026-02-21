@@ -117,7 +117,7 @@ const useWindowSize = () => {
 const getCardOffset = (windowWidth, windowHeight, colLength) => {
   // Base offset values (rem)
   let baseOffset = 4.5;
-  if (windowWidth < 640) baseOffset = 2.2;
+  if (windowWidth < 640) baseOffset = 1.8;
   else if (windowWidth < 1024) baseOffset = 3.5;
   else if (windowWidth < 1440) baseOffset = 4.5;
   else baseOffset = 5.5;
@@ -127,7 +127,7 @@ const getCardOffset = (windowWidth, windowHeight, colLength) => {
 
   // Padding Y (rem)
   let paddingY = 12;
-  if (windowWidth < 640) paddingY = 7;
+  if (windowWidth < 640) paddingY = 5;
   else if (windowWidth < 1024) paddingY = 6;
   else if (windowWidth < 1280) paddingY = 8;
 
@@ -152,7 +152,7 @@ const getCardOffset = (windowWidth, windowHeight, colLength) => {
   const colWidthRem = (totalBoardWidthRem - (7 * gapRem)) / 8;
   const cardHeightRem = colWidthRem * (3.6 / 2.5);
 
-  const slotRowMarginBottomRem = 2;
+  const slotRowMarginBottomRem = windowWidth < 640 ? 1 : 2;
   const slotRowHeightRem = cardHeightRem + slotRowMarginBottomRem;
 
   const availableHeightRem = (windowHeight / 16) - headerHeight - paddingY - slotRowHeightRem - 2;
@@ -645,7 +645,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className={`flex-1 p-4 pb-24 sm:pb-12 sm:p-12 lg:p-16 xl:p-24 overflow-hidden flex flex-row justify-center w-full relative ${width > 2000 ? "px-32" : ""}`}>
+      <main className={`flex-1 p-2 pb-20 sm:pb-12 sm:p-12 lg:p-16 xl:p-24 overflow-hidden flex flex-row justify-center w-full relative ${width > 2000 ? "px-32" : ""}`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.05),transparent_70%)] pointer-events-none" />
         {/* Left Side Panel - Local Only */}
         {width > 2000 && (
@@ -696,7 +696,7 @@ export default function App() {
 
         <div className="flex-1 flex flex-col max-w-[2500px] w-full relative">
         {/* Slot Row */}
-        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24 mb-8 z-10 w-full">
+        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24 mb-4 sm:mb-8 z-10 w-full">
             {/* Freecells */}
             {gameState.freecells.map((card, i) => (
               <div key={`fc-${i}`} data-drop-type="freecell" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/40 recessed-slot">
@@ -863,12 +863,12 @@ export default function App() {
 function Card({ card, isDragging, isStatic }) {
   return (
     <div className={`w-full h-full bg-[#fcfcfc] rounded-lg sm:rounded-xl xl:rounded-2xl shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl transition-transform duration-200`}>
-      <div className={`absolute top-0.5 left-1 sm:top-2 sm:left-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className="text-[8px] sm:text-lg lg:text-2xl xl:text-4xl -mt-0.5 sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
+      <div className={`absolute top-1 left-1.5 sm:top-2 sm:left-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-row sm:flex-col items-center sm:items-center gap-0.5 sm:gap-0 leading-none ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className="text-[10px] sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
       </div>
-      <div className={`absolute inset-0 flex items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-[0.08]`}>{SUIT_ICONS[card.suit]}</div>
-      <div className={`absolute bottom-0.5 right-1 sm:bottom-2 sm:right-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className="text-[8px] sm:text-lg lg:text-2xl xl:text-4xl -mt-0.5 sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
+      <div className={`absolute inset-0 hidden sm:flex items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-[0.08]`}>{SUIT_ICONS[card.suit]}</div>
+      <div className={`absolute bottom-1 right-1.5 sm:bottom-2 sm:right-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-row sm:flex-col items-center sm:items-center gap-0.5 sm:gap-0 leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className="text-[10px] sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
       </div>
       {/* Subtle card texture */}
       <div className="absolute inset-0 bg-gradient-to-tr from-black/[0.03] to-transparent pointer-events-none" />
