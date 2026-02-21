@@ -1,0 +1,27 @@
+{
+  "name": "Casual Freecell",
+  "short_name": "Freecell",
+  "description": "A relaxing Freecell solitaire experience.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#008f83",
+  "theme_color": "#008f83",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
