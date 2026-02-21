@@ -301,7 +301,7 @@ export default function App() {
     }
   }, [gameState, checkWin]);
 
-  const onMouseMove = useCallback((e) => {
+  const onMouseMove = useCallback((e) => { if (e.type === "touchmove" && e.cancelable) e.preventDefault();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
@@ -703,7 +703,7 @@ export default function App() {
                 {!card && <div className="absolute inset-0 border-2 border-dashed border-green-700/20 rounded-lg m-1" />}
                 {card && (
                   <div
-                    onMouseDown={(e) => onMouseDown(e, 'freecell', i)}
+                    onMouseDown={(e) => onMouseDown(e, 'freecell', i)} onTouchStart={(e) => onMouseDown(e, 'freecell', i)}
                     onContextMenu={(e) => onContextMenu(e, card)}
                     onDoubleClick={() => handleDoubleClick(card, 'freecell', i)}
                     className={`h-full transition-all duration-300 ${dragInfo?.source.type === 'freecell' && dragInfo?.source.index === i ? 'opacity-0' : 'card-hover-effect'} ${focusedCard?.id === card?.id ? 'twin-reveal' : ''} ${focusedCard?.twinId === card?.id ? 'twin-highlight' : ''}`}
@@ -721,7 +721,7 @@ export default function App() {
                     {SUIT_ICONS[suit]}
                 </div>
                 {gameState.foundations[suit].map((card) => (
-                  <div key={card.id} className={`absolute inset-0 transition-all ${focusedCard?.id === card.id ? 'twin-reveal' : ''} ${focusedCard?.twinId === card.id ? 'twin-highlight' : ''}`}>
+                  <div key={card.id} data-card-id={card.id} className={`absolute inset-0 transition-all ${focusedCard?.id === card.id ? 'twin-reveal' : ''} ${focusedCard?.twinId === card.id ? 'twin-highlight' : ''}`}>
                     <Card card={card} isStatic />
                   </div>
                 ))}
@@ -740,10 +740,10 @@ export default function App() {
                  const isTwinHighlight = focusedCard?.twinId === card.id;
                  return (
                   <div
-                    key={card.id}
+                    key={card.id} data-card-id={card.id}
                     className={`absolute w-full transition-all duration-200 aspect-[2.5/3.6] ${isSourceOfDrag ? 'opacity-0 pointer-events-none' : 'card-hover-effect'} ${isFocused ? 'twin-reveal' : ''} ${isTwinHighlight ? 'twin-highlight' : ''}`}
                     style={{ top: `${cardIndex * getCardOffset(width, height, col.length)}rem`, zIndex: isFocused ? 9999 : cardIndex }}
-                    onMouseDown={(e) => onMouseDown(e, 'column', colIndex, cardIndex)}
+                    onMouseDown={(e) => onMouseDown(e, 'column', colIndex, cardIndex)} onTouchStart={(e) => onMouseDown(e, 'column', colIndex, cardIndex)}
                     onContextMenu={(e) => onContextMenu(e, card)}
                     onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(card, 'column', colIndex); }}
                   >
@@ -800,7 +800,7 @@ export default function App() {
         <div className="fixed pointer-events-none z-[100] flex flex-col no-transition will-change-drag shadow-2xl"
           style={{ left: 0, top: 0, transform: `translate3d(${dragInfo.x}px, ${dragInfo.y}px, 0) translate(-50%, -15%) rotate(1deg)`, width: 'min(calc((100vw - 12rem) / 8), 8rem)' }}>
           {dragInfo.cards.map((card, i) => (
-            <div key={card.id} className="aspect-[2.5/3.6] w-full" style={{ marginTop: i === 0 ? 0 : "-75%" }}><Card card={card} isDragging /></div>
+            <div key={card.id} data-card-id={card.id} className="aspect-[2.5/3.6] w-full" style={{ marginTop: i === 0 ? 0 : "-75%" }}><Card card={card} isDragging /></div>
           ))}
         </div>
       )}
@@ -863,11 +863,11 @@ export default function App() {
 function Card({ card, isDragging, isStatic }) {
   return (
     <div className={`w-full h-full bg-[#fcfcfc] rounded-lg sm:rounded-xl xl:rounded-2xl shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl transition-transform duration-200`}>
-      <div className={`absolute top-1 left-1.5 sm:top-2 sm:left-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-row sm:flex-col items-center sm:items-center gap-0.5 sm:gap-0 leading-none ${SUIT_COLORS[card.suit]}`}>
+      <div data-testid="card-rank-suit" className={`absolute top-1 left-1.5 sm:top-2 sm:left-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-row sm:flex-col items-center sm:items-center gap-0.5 sm:gap-0 leading-none ${SUIT_COLORS[card.suit]}`}>
         <span>{card.rank}</span><span className="text-[10px] sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
       </div>
       <div className={`absolute inset-0 hidden sm:flex items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-[0.08]`}>{SUIT_ICONS[card.suit]}</div>
-      <div className={`absolute bottom-1 right-1.5 sm:bottom-2 sm:right-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-row sm:flex-col items-center sm:items-center gap-0.5 sm:gap-0 leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
+      <div data-testid="card-rank-suit" className={`absolute bottom-1 right-1.5 sm:bottom-2 sm:right-3 text-xs sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-row sm:flex-col items-center sm:items-center gap-0.5 sm:gap-0 leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
         <span>{card.rank}</span><span className="text-[10px] sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1">{SUIT_ICONS[card.suit]}</span>
       </div>
       {/* Subtle card texture */}
