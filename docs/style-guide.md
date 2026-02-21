@@ -28,22 +28,29 @@ The "Emerald Pro" theme is designed to evoke a premium, physical card table expe
 
 ## Responsive Layouts & Breakpoints
 
-The application is optimized for three primary form factors.
+The application is optimized for four primary form factors.
 
-### 1. Mobile (<= 640px)
-**Screenshot:** ![Mobile Layout](./assets/mobile.png)
+### 1. Mobile Portrait (<= 640px)
+**Screenshot:** ![Mobile Portrait](./assets/mobile.png)
 
 - **Bottom Navigation**: Sticky HUD for Undo, New Game, and Menu.
 - **Card Design**: Rank and suit are arranged horizontally (`flex-row`) to maximize vertical space. Center icons are hidden.
-- **Stacking**: Reduced vertical offset (`1.8`) to prevent overflow on small screens.
+- **Stacking**: Reduced vertical offset (`1.8`) to prevent overflow.
 
-### 2. Desktop (Standard)
+### 2. Mobile Landscape (<= 1024px width AND <= 600px height)
+**Screenshot:** ![Mobile Landscape](./assets/mobile-landscape.png)
+
+- **Layout Choice**: Uses the mobile-style HUD and card compression even at wider widths to account for limited vertical space.
+- **Bottom Navigation**: Sticky HUD remains visible for quick access.
+- **Card Design**: Uses horizontal rank/suit layout.
+
+### 3. Desktop (Standard)
 **Screenshot:** ![Desktop Layout](./assets/desktop.png)
 
 - **Card Design**: Traditional vertical layout (`flex-col`) for rank and suit. Large watermark-style center icons (8% opacity).
 - **Interactions**: Full drag-and-drop support with shadow transitions.
 
-### 3. Ultrawide (> 2000px)
+### 4. Ultrawide (> 2000px)
 **Screenshot:** ![Ultrawide Layout](./assets/ultrawide.png)
 
 - **Max Width**: Board width capped at 2500px for visual balance.
