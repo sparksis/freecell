@@ -33,3 +33,6 @@ The application must maintain a polished UI across three primary resolution tier
 - Maintain zero ESLint warnings/errors.
 - Ensure all transitions are smooth (use `transition-all` and `duration-200/500`).
 - Performance: Use `useCallback` and `useMemo` for heavy board calculations to ensure 60fps interaction during drags.
+
+## Documentation
+- Refer to [docs/style-guide.md](docs/style-guide.md) for detailed design decisions, color palettes, and responsive layout requirements.
