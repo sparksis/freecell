@@ -15,17 +15,17 @@ const SUIT_ICONS = {
 };
 
 const SUIT_COLORS = {
-  spades: 'text-slate-900',
-  hearts: 'text-red-600',
-  clubs: 'text-slate-900',
-  diamonds: 'text-red-600',
+  spades: 'text-emerald-950',
+  hearts: 'text-rose-500',
+  clubs: 'text-emerald-950',
+  diamonds: 'text-rose-500',
 };
 
 const SUIT_FILL_COLORS = {
-  spades: 'text-slate-800/20',
-  hearts: 'text-red-500/20',
-  clubs: 'text-slate-800/20',
-  diamonds: 'text-red-500/20',
+  spades: 'text-emerald-950/20',
+  hearts: 'text-rose-500/20',
+  clubs: 'text-emerald-950/20',
+  diamonds: 'text-rose-500/20',
 };
 
 const isAlternateColor = (card1, card2) => {
@@ -143,7 +143,7 @@ const getCardOffset = (windowWidth, windowHeight, colLength) => {
   const sidePanelsWidth = windowWidth > 2000 ? 56 : 0;
 
   // Gap (rem)
-  let gapRem = 6;
+  let gapRem = 3;
   if (isMobileLocal) gapRem = 0.75;
   else if (windowWidth < 768) gapRem = 1.5;
   else if (windowWidth < 1024) gapRem = 2;
@@ -696,9 +696,9 @@ export default function App() {
           </aside>
         )}
 
-        <div className="flex-1 flex flex-col max-w-[2500px] w-full relative">
+                <div className={`flex-1 flex flex-col ${width > 2000 ? "max-w-[2500px]" : "max-w-[1400px]"} w-full relative`}>
         {/* Slot Row */}
-        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24 mb-4 sm:mb-8 z-10 w-full">
+        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-12 mb-4 sm:mb-8 z-10 w-full">
             {/* Freecells */}
             {gameState.freecells.map((card, i) => (
               <div key={`fc-${i}`} data-drop-type="freecell" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/40 recessed-slot">
@@ -732,7 +732,7 @@ export default function App() {
         </div>
 
         {/* Tableau Row */}
-        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24 flex-1 relative z-10 w-full">
+        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-12 flex-1 relative z-10 w-full">
           {gameState.columns.map((col, colIndex) => (
             <div key={`col-${colIndex}`} data-drop-type="column" data-drop-index={colIndex} className="relative h-full">
               {col.length === 0 && <div className="absolute top-0 w-full aspect-[2.5/3.6] rounded-lg border-2 border-dashed border-green-800/30" />}
@@ -865,12 +865,12 @@ export default function App() {
 function Card({ card, isDragging, isStatic, isMobile }) {
   return (
     <div className={`w-full h-full bg-[#fcfcfc] rounded-lg ${isMobile ? '' : 'sm:rounded-xl xl:rounded-2xl'} shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl transition-transform duration-200`}>
-      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? 'top-1 left-1.5' : 'top-1 left-1.5 sm:top-2 sm:left-3'} text-xs ${isMobile ? '' : 'sm:text-xl lg:text-3xl xl:text-5xl'} font-black flex ${isMobile ? 'flex-row' : 'flex-row sm:flex-col'} items-center gap-0.5 sm:gap-0 leading-none ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className={`text-[10px] ${isMobile ? '' : 'sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1'}`}>{SUIT_ICONS[card.suit]}</span>
+      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? 'top-1 left-1.5' : 'top-1 left-1.5 sm:top-2 sm:left-3'} text-xs ${isMobile ? '' : 'sm:text-xl lg:text-3xl xl:text-3xl'} font-black flex ${isMobile ? 'flex-row' : 'flex-row sm:flex-col'} items-center gap-0.5 sm:gap-0 leading-none ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className={`text-[10px] ${isMobile ? '' : 'sm:text-lg lg:text-2xl xl:text-2xl sm:-mt-1'}`}>{SUIT_ICONS[card.suit]}</span>
       </div>
-      <div className={`absolute inset-0 ${isMobile ? 'hidden' : 'hidden sm:flex'} items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-[0.08]`}>{SUIT_ICONS[card.suit]}</div>
-      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? 'bottom-1 right-1.5' : 'bottom-1 right-1.5 sm:bottom-2 sm:right-3'} text-xs ${isMobile ? '' : 'sm:text-xl lg:text-3xl xl:text-5xl'} font-black flex ${isMobile ? 'flex-row' : 'flex-row sm:flex-col'} items-center gap-0.5 sm:gap-0 leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className={`text-[10px] ${isMobile ? '' : 'sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1'}`}>{SUIT_ICONS[card.suit]}</span>
+      <div className={`absolute inset-0 ${isMobile ? 'hidden' : 'hidden sm:flex'} items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-9xl ${SUIT_COLORS[card.suit]} opacity-[0.08]`}>{SUIT_ICONS[card.suit]}</div>
+      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? 'bottom-1 right-1.5' : 'bottom-1 right-1.5 sm:bottom-2 sm:right-3'} text-xs ${isMobile ? '' : 'sm:text-xl lg:text-3xl xl:text-3xl'} font-black flex ${isMobile ? 'flex-row' : 'flex-row sm:flex-col'} items-center gap-0.5 sm:gap-0 leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className={`text-[10px] ${isMobile ? '' : 'sm:text-lg lg:text-2xl xl:text-2xl sm:-mt-1'}`}>{SUIT_ICONS[card.suit]}</span>
       </div>
       {/* Subtle card texture */}
       <div className="absolute inset-0 bg-gradient-to-tr from-black/[0.03] to-transparent pointer-events-none" />
