@@ -8,7 +8,7 @@ test.describe('Mobile Layout', () => {
 
     // Find a card and check the flex direction of the rank/suit container
     const cardRankSuitContainer = page.getByTestId('card-rank-suit').first();
-    await expect(cardRankSuitContainer).toHaveCSS('flex-direction', 'row');
+    await expect(cardRankSuitContainer).toHaveCSS('flex-direction', 'column');
   });
 });
 

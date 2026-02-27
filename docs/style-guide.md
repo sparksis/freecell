@@ -33,9 +33,10 @@ The application is optimized for four primary form factors.
 ### 1. Mobile Portrait (<= 640px)
 **Screenshot:** ![Mobile Portrait](./assets/mobile.png)
 
-- **Bottom Navigation**: Sticky HUD for Undo, New Game, and Menu.
-- **Card Design**: Rank and suit are arranged horizontally (`flex-row`) to maximize vertical space. Center icons are hidden.
-- **Stacking**: Reduced vertical offset (`1.8`) to prevent overflow.
+- **Layout**: "Perfect Layout" implementation with gold-accented header and integrated actions.
+- **Header**: Contains title "FREECELL PRO", "New Game", "Time/Moves" stats, and circular "Settings/Undo" buttons.
+- **Card Design**: Traditional vertical layout (`flex-col`) for rank and suit. Center icons are visible (15% opacity).
+- **Stacking**: Optimized vertical stacking with reduced gap (`0.25rem` rem base) to prevent overflow.
 
 ### 2. Mobile Landscape (<= 1024px width AND <= 600px height)
 **Screenshot:** ![Mobile Landscape](./assets/mobile-landscape.png)

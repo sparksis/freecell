@@ -144,7 +144,8 @@ const getCardOffset = (windowWidth, windowHeight, colLength) => {
 
   // Gap (rem)
   let gapRem = 6;
-  if (isMobileLocal) gapRem = 0.75;
+  if (windowWidth <= 640 && windowWidth < windowHeight) gapRem = 0.25;
+  else if (isMobileLocal) gapRem = 0.75;
   else if (windowWidth < 768) gapRem = 1.5;
   else if (windowWidth < 1024) gapRem = 2;
   else if (windowWidth < 1280) gapRem = 3;
@@ -169,6 +170,7 @@ const getCardOffset = (windowWidth, windowHeight, colLength) => {
 export default function App() {
   const { width, height } = useWindowSize();
   const isMobile = width <= 640 || (width <= 1024 && height <= 600);
+  const isMobilePortrait = isMobile && width < height;
   const [gameState, setGameState] = useState(dealGame());
   const [history, setHistory] = useState([]);
   const [win, setWin] = useState(false);
@@ -611,41 +613,72 @@ export default function App() {
         }
       `}</style>
 
-            <header className="h-20 sm:h-24 xl:h-32 bg-[#062c1e]/80 backdrop-blur-xl flex items-center justify-between px-8 border-b border-emerald-500/20 z-[70] shrink-0 shadow-2xl">
-        <div className="flex items-center gap-4 sm:gap-12 w-1/3">
-          <button onClick={handleLogoClick} className="text-2xl font-black text-emerald-400 tracking-tighter flex items-center gap-3 hover:brightness-110 transition active:scale-95 group">
-            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-green-950 text-xl font-black shadow-[0_0_20px_rgba(16,185,129,0.4)]">F</div>
-            <span className="hidden sm:inline uppercase">Casual <span className="text-emerald-600/50 text-xs tracking-widest ml-1 font-bold">Freecell</span></span>
-          </button>
-
-          {width > 1200 && (
-            <button onClick={startNewGame} className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 rounded-xl border border-emerald-500/20 transition-all font-black text-xs tracking-widest">
-                <Play size={16} fill="currentColor" /> NEW GAME
+      {isMobilePortrait ? (
+        <header className="pt-6 pb-4 px-4 flex flex-col gap-4 z-[70] shrink-0">
+          <h1 className="text-3xl font-black text-[#d4af37] tracking-[0.2em] uppercase text-center drop-shadow-md">FreeCell Pro</h1>
+          <div className="flex items-center justify-between gap-2">
+            <button onClick={startNewGame} className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-[#d4af37]/40 bg-black/20 text-[#d4af37] font-bold text-sm active:scale-95 transition-all">
+              <Play size={16} fill="currentColor" /> New Game
             </button>
-          )}
-        </div>
 
-        <div className="flex items-center gap-4 sm:gap-8 bg-black/40 px-4 sm:px-10 py-2 sm:py-3 rounded-2xl sm:rounded-3xl border border-white/5 shadow-inner">
-            <div className="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
-                <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black">Time</span>
-                <span className="text-lg sm:text-2xl font-mono font-bold text-emerald-50 leading-tight">{formatTime(time)}</span>
+            <div className="flex-1 flex items-center justify-around bg-black/30 border-2 border-[#d4af37]/40 py-1.5 rounded-xl shadow-inner mx-2">
+              <div className="flex flex-col items-center">
+                <span className="text-[9px] uppercase tracking-widest text-[#d4af37]/70 font-black">Time:</span>
+                <span className="text-xl font-mono font-bold text-white leading-tight">{formatTime(time)}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[9px] uppercase tracking-widest text-[#d4af37]/70 font-black">Moves:</span>
+                <span className="text-xl font-mono font-bold text-white leading-tight">{gameState.moves}</span>
+              </div>
             </div>
-            <div className="w-px h-8 sm:h-10 bg-white/10" />
-            <div className="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
-                <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black">Moves</span>
-                <span className="text-lg sm:text-2xl font-mono font-bold text-emerald-50 leading-tight">{gameState.moves}</span>
-            </div>
-        </div>
 
-        <div className="flex items-center justify-end gap-3 sm:gap-6 w-1/3">
-          <button onClick={undo} disabled={history.length === 0} title="Undo (Ctrl+Z)" className={`p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all ${history.length === 0 ? 'opacity-20 cursor-not-allowed' : 'active:scale-90 hover:border-emerald-500/40 text-emerald-400'}`}>
-            <RotateCcw size={24} />
-          </button>
-          <button onClick={() => setMenuOpen(true)} className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-90 hover:border-emerald-500/40 text-emerald-400">
-            <Settings size={24} />
-          </button>
-        </div>
-      </header>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setMenuOpen(true)} className="p-2 rounded-xl border-2 border-[#d4af37]/40 bg-black/20 text-[#d4af37] active:scale-90 transition-all">
+                <Settings size={22} />
+              </button>
+              <button onClick={undo} disabled={history.length === 0} className={`p-2 rounded-xl border-2 border-[#d4af37]/40 bg-black/20 text-[#d4af37] active:scale-90 transition-all ${history.length === 0 ? "opacity-30" : ""}`}>
+                <RotateCcw size={22} />
+              </button>
+            </div>
+          </div>
+        </header>
+      ) : (
+        <header className="h-20 sm:h-24 xl:h-32 bg-[#062c1e]/80 backdrop-blur-xl flex items-center justify-between px-8 border-b border-emerald-500/20 z-[70] shrink-0 shadow-2xl">
+          <div className="flex items-center gap-4 sm:gap-12 w-1/3">
+            <button onClick={handleLogoClick} className="text-2xl font-black text-emerald-400 tracking-tighter flex items-center gap-3 hover:brightness-110 transition active:scale-95 group">
+              <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-green-950 text-xl font-black shadow-[0_0_20px_rgba(16,185,129,0.4)]">F</div>
+              <span className="hidden sm:inline uppercase">Casual <span className="text-emerald-600/50 text-xs tracking-widest ml-1 font-bold">Freecell</span></span>
+            </button>
+
+            {width > 1200 && (
+              <button onClick={startNewGame} className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 rounded-xl border border-emerald-500/20 transition-all font-black text-xs tracking-widest">
+                  <Play size={16} fill="currentColor" /> NEW GAME
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-4 sm:gap-8 bg-black/40 px-4 sm:px-10 py-2 sm:py-3 rounded-2xl sm:rounded-3xl border border-white/5 shadow-inner">
+              <div className="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black">Time</span>
+                  <span className="text-lg sm:text-2xl font-mono font-bold text-emerald-50 leading-tight">{formatTime(time)}</span>
+              </div>
+              <div className="w-px h-8 sm:h-10 bg-white/10" />
+              <div className="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black">Moves</span>
+                  <span className="text-lg sm:text-2xl font-mono font-bold text-emerald-50 leading-tight">{gameState.moves}</span>
+              </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 sm:gap-6 w-1/3">
+            <button onClick={undo} disabled={history.length === 0} title="Undo (Ctrl+Z)" className={`p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all ${history.length === 0 ? 'opacity-20 cursor-not-allowed' : 'active:scale-90 hover:border-emerald-500/40 text-emerald-400'}`}>
+              <RotateCcw size={24} />
+            </button>
+            <button onClick={() => setMenuOpen(true)} className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-90 hover:border-emerald-500/40 text-emerald-400">
+              <Settings size={24} />
+            </button>
+          </div>
+        </header>
+      )}
 
       <main className={`flex-1 p-2 pb-20 sm:pb-12 sm:p-12 lg:p-16 xl:p-24 overflow-hidden flex flex-row justify-center w-full relative ${width > 2000 ? "px-32" : ""}`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.05),transparent_70%)] pointer-events-none" />
@@ -698,11 +731,11 @@ export default function App() {
 
         <div className="flex-1 flex flex-col max-w-[2500px] w-full relative">
         {/* Slot Row */}
-        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24 mb-4 sm:mb-8 z-10 w-full">
+        <div className={`grid grid-cols-8 ${isMobilePortrait ? "gap-1 mb-6 px-1" : "gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24 mb-4 sm:mb-8"} z-10 w-full`}>
             {/* Freecells */}
             {gameState.freecells.map((card, i) => (
-              <div key={`fc-${i}`} data-drop-type="freecell" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/40 recessed-slot">
-                {!card && <div className="absolute inset-0 border-2 border-dashed border-green-700/20 rounded-lg m-1" />}
+              <div key={`fc-${i}`} data-drop-type="freecell" data-drop-index={i} className={`relative aspect-[2.5/3.6] rounded-lg border-2 ${isMobilePortrait ? "border-[#d4af37]/40" : "border-green-800/40"} recessed-slot`}>
+                {!card && <div className={`absolute inset-0 border-2 border-dashed ${isMobilePortrait ? "border-[#d4af37]/20" : "border-green-700/20"} rounded-lg m-1`} />}
                 {card && (
                   <div
                     onMouseDown={(e) => onMouseDown(e, 'freecell', i)} onTouchStart={(e) => onMouseDown(e, 'freecell', i)}
@@ -718,8 +751,8 @@ export default function App() {
 
             {/* Foundations */}
             {SUITS.map((suit, i) => (
-              <div key={`fd-${suit}`} data-drop-type="foundation" data-drop-index={i} className="relative aspect-[2.5/3.6] rounded-lg border-2 border-green-800/60 recessed-slot flex items-center justify-center overflow-hidden">
-                <div className={`text-6xl sm:text-7xl font-black select-none pointer-events-none transition-colors duration-500 ${SUIT_FILL_COLORS[suit]}`}>
+              <div key={`fd-${suit}`} data-drop-type="foundation" data-drop-index={i} className={`relative aspect-[2.5/3.6] rounded-lg border-2 ${isMobilePortrait ? "border-[#d4af37]/60" : "border-green-800/60"} recessed-slot flex items-center justify-center overflow-hidden`}>
+                <div className={`${isMobilePortrait ? "text-2xl" : "text-6xl sm:text-7xl"} font-black select-none pointer-events-none transition-colors duration-500 ${SUIT_FILL_COLORS[suit]}`}>
                     {SUIT_ICONS[suit]}
                 </div>
                 {gameState.foundations[suit].map((card) => (
@@ -732,7 +765,7 @@ export default function App() {
         </div>
 
         {/* Tableau Row */}
-        <div className="grid grid-cols-8 gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24 flex-1 relative z-10 w-full">
+        <div className={`grid grid-cols-8 ${isMobilePortrait ? "gap-1" : "gap-3 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-24"} flex-1 relative z-10 w-full`}>
           {gameState.columns.map((col, colIndex) => (
             <div key={`col-${colIndex}`} data-drop-type="column" data-drop-index={colIndex} className="relative h-full">
               {col.length === 0 && <div className="absolute top-0 w-full aspect-[2.5/3.6] rounded-lg border-2 border-dashed border-green-800/30" />}
@@ -757,6 +790,44 @@ export default function App() {
           ))}
         </div>
         </div>
+
+        {/* Mobile Portrait Stats Overlay */}
+        {isMobilePortrait && (
+          <div className="absolute bottom-4 left-4 z-[60] flex flex-col gap-2 w-48 pointer-events-none opacity-90">
+             <div className="bg-black/40 rounded-xl p-3 border border-[#d4af37]/30 shadow-xl backdrop-blur-md">
+                <h3 className="text-[#d4af37] font-black text-[8px] uppercase tracking-widest mb-2 flex items-center gap-1">
+                    <Trophy size={10} /> Hall of Fame
+                </h3>
+                <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-emerald-100/70 font-bold uppercase tracking-wider">Wins</span>
+                        <span className="font-mono text-[#d4af37] font-black">{stats.wins}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-emerald-100/70 font-bold uppercase tracking-wider">Rate</span>
+                        <span className="font-mono text-[#d4af37] font-black">{stats.games > 0 ? (Math.round((stats.wins / stats.games) * 100) + "%") : "0%"}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-black/40 rounded-xl p-3 border border-[#d4af37]/30 shadow-xl backdrop-blur-md">
+                <h3 className="text-[#d4af37] font-black text-[8px] uppercase tracking-widest mb-2 flex items-center gap-1">
+                    <Clock size={10} /> Personal Stats
+                </h3>
+                <div className="grid grid-cols-1 gap-1">
+                    <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-emerald-500/50 font-black uppercase tracking-widest">Streak</span>
+                        <span className="font-black text-emerald-50">{stats.streak}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-emerald-500/50 font-black uppercase tracking-widest">Best</span>
+                        <span className="font-black text-emerald-50">{stats.bestTime ? formatTime(stats.bestTime) : "--:--"}</span>
+                    </div>
+                </div>
+            </div>
+          </div>
+        )}
+
         {/* Right Side Panel - Move History */}
         {width > 2000 && (
           <aside className="w-96 flex flex-col gap-8 pl-16 shrink-0 py-4 animate-pop">
@@ -839,8 +910,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Mobile Bottom Navigation */}
-      {isMobile && (
+      {/* Mobile Bottom Navigation (Landscape Only) */}
+      {isMobile && !isMobilePortrait && (
         <nav className="fixed bottom-0 left-0 right-0 bg-[#008f83]/95 backdrop-blur-2xl border-t border-emerald-500/20 px-8 pb-8 pt-4 flex items-center justify-between z-[90] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
           <button onClick={undo} disabled={history.length === 0} className={`flex flex-col items-center gap-1.5 ${history.length === 0 ? 'opacity-20' : 'text-emerald-400 active:scale-90 transition-all'}`}>
             <RotateCcw size={24} />
@@ -863,14 +934,15 @@ export default function App() {
 }
 
 function Card({ card, isDragging, isStatic, isMobile }) {
+  const isMobilePortrait = isMobile && window.innerWidth < window.innerHeight;
   return (
-    <div className={`w-full h-full bg-[#fcfcfc] rounded-lg ${isMobile ? '' : 'sm:rounded-xl xl:rounded-2xl'} shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? '' : 'card-shadow'} ${isDragging ? 'scale-[1.05] ring-4 ring-emerald-400/50' : 'border border-slate-200'} shadow-xl transition-transform duration-200`}>
-      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? 'top-1 left-1.5' : 'top-1 left-1.5 sm:top-2 sm:left-3'} text-xs ${isMobile ? '' : 'sm:text-xl lg:text-3xl xl:text-5xl'} font-black flex ${isMobile ? 'flex-row' : 'flex-row sm:flex-col'} items-center gap-0.5 sm:gap-0 leading-none ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className={`text-[10px] ${isMobile ? '' : 'sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1'}`}>{SUIT_ICONS[card.suit]}</span>
+    <div className={`w-full h-full bg-[#fcfcfc] rounded-lg ${isMobile ? "" : "sm:rounded-xl xl:rounded-2xl"} shadow-2xl select-none overflow-hidden relative ring-1 ring-black/5 ${isStatic ? "" : "card-shadow"} ${isDragging ? "scale-[1.05] ring-4 ring-emerald-400/50" : "border border-slate-200"} shadow-xl transition-transform duration-200`}>
+      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? "top-1 left-1" : "top-2 left-3"} text-[10px] sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center gap-0 leading-none ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className={`text-[9px] sm:text-lg lg:text-2xl xl:text-4xl -mt-1`}>{SUIT_ICONS[card.suit]}</span>
       </div>
-      <div className={`absolute inset-0 ${isMobile ? 'hidden' : 'hidden sm:flex'} items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-[14rem] ${SUIT_COLORS[card.suit]} opacity-[0.08]`}>{SUIT_ICONS[card.suit]}</div>
-      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? 'bottom-1 right-1.5' : 'bottom-1 right-1.5 sm:bottom-2 sm:right-3'} text-xs ${isMobile ? '' : 'sm:text-xl lg:text-3xl xl:text-5xl'} font-black flex ${isMobile ? 'flex-row' : 'flex-row sm:flex-col'} items-center gap-0.5 sm:gap-0 leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
-        <span>{card.rank}</span><span className={`text-[10px] ${isMobile ? '' : 'sm:text-lg lg:text-2xl xl:text-4xl sm:-mt-1'}`}>{SUIT_ICONS[card.suit]}</span>
+      <div className={`absolute inset-0 ${isMobilePortrait ? "flex items-center justify-center text-2xl opacity-[0.15]" : isMobile ? "hidden" : "hidden sm:flex items-center justify-center text-3xl sm:text-7xl lg:text-9xl xl:text-[14rem] opacity-[0.08]"} ${SUIT_COLORS[card.suit]}`}>{SUIT_ICONS[card.suit]}</div>
+      <div data-testid="card-rank-suit" className={`absolute ${isMobile ? "bottom-1 right-1" : "bottom-2 right-3"} text-[10px] sm:text-xl lg:text-3xl xl:text-5xl font-black flex flex-col items-center gap-0 leading-none rotate-180 ${SUIT_COLORS[card.suit]}`}>
+        <span>{card.rank}</span><span className={`text-[9px] sm:text-lg lg:text-2xl xl:text-4xl -mt-1`}>{SUIT_ICONS[card.suit]}</span>
       </div>
       {/* Subtle card texture */}
       <div className="absolute inset-0 bg-gradient-to-tr from-black/[0.03] to-transparent pointer-events-none" />
