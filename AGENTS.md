@@ -5,8 +5,8 @@ This document outlines the core requirements and constraints for the Casual Free
 ## 1. Responsive Layout Architecture
 The application must maintain a polished UI across three primary resolution tiers:
 - **Mobile (<= 640px)**:
-    - Use a bottom-anchored HUD for primary actions (Undo, New Game, Menu).
-    - Compact header to maximize board space.
+    - Mobile Portrait: Use "Perfect Layout" with integrated gold-accented header (No bottom HUD).
+    - Mobile Landscape: Maintain bottom-anchored HUD for primary actions (Undo, New Game, Menu).
 - **Desktop (641px - 2000px)**:
     - Centered game board with a maximum width of 1400px for optimal focus.
 - **Ultrawide (>= 2000px)**:
